@@ -1,0 +1,5 @@
+# Pyrefly Static Type Checker Configuration
+python-interpreter-path = "c:/Users/chand/OneDrive/Desktop/fitbuddy1/fitbuddy-env/Scripts/python.exe"
+site-package-path = [
+  "c:/Users/chand/OneDrive/Desktop/fitbuddy1/fitbuddy-env/Lib/site-packages"
+]
