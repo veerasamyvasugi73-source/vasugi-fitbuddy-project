@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Coach Dashboard – All Athletes &amp; Plans | FitBuddy</title>
+  <meta name="description"
+    content="Admin dashboard to inspect and manage all registered athletes, original workout plans, and AI feedback revisions.">
+  <link rel="stylesheet" href="/static/css/style.css">
+  <link rel="icon"
+    href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚡</text></svg>">
+</head>
+
+<body>
+  <div class="bg-hero-overlay"></div>
+
+  <!-- Navigation Bar -->
+  <header class="navbar">
+    <a href="/" class="nav-brand" id="brand-logo">
+      <div class="brand-icon">⚡</div>
+      <div class="brand-text">FitBuddy</div>
+      <span class="brand-badge">Coach Portal</span>
+    </a>
+    <nav class="nav-links">
+      <a href="/" class="nav-link" id="nav-home">
+        <span>🏠</span> Create Plan
+      </a>
+      <a href="/view-all-users" class="nav-link active" id="nav-admin">
+        <span>👥</span> Coach Dashboard
+      </a>
+      <a href="/docs" target="_blank" class="nav-btn">
+        API Docs &rarr;
+      </a>
+    </nav>
+  </header>
+
+  <!-- Main Container -->
+  <main class="container">
+
+    <div class="hero-header" style="text-align: left; margin-bottom: 2rem;">
+      <div class="hero-subtitle-badge">
+        <span>📋</span> Athlete Roster &amp; Routine Archive
+      </div>
+      <h1 class="hero-title" style="font-size: 2.3rem;">Coach &amp; Admin Management Portal</h1>
+      <p class="hero-desc" style="margin: 0;">
+        Monitor all registered athletes, review AI-generated original routines, and track feedback iterations in
+        real-time.
+      </p>
+    </div>
+
+    <!-- Stats Summary Cards -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon">👥</div>
+        <div>
+          <div class="stat-val" id="stat-total-users">{{ total_users }}</div>
+          <div class="stat-label">Total Registered Athletes</div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon" style="background: rgba(0, 229, 255, 0.15); color: var(--accent-cyan);">🔄</div>
+        <div>
+          <div class="stat-val" id="stat-updated-plans">{{ updated_count }}</div>
+          <div class="stat-label">Plans Revised via Feedback</div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon" style="background: rgba(255, 179, 0, 0.15); color: var(--accent-amber);">🤖</div>
+        <div>
+          <div class="stat-val">Gemini 1.5</div>
+          <div class="stat-label">AI Engine &amp; Flash Pro</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Search / Filter & Actions Bar -->
+    <div
+      style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; gap: 1rem; flex-wrap: wrap;">
+      <input type="text" id="user-search-input" class="form-input" style="max-width: 380px; flex: 1;"
+        placeholder="🔍 Search athlete by name, ID, or goal..." onkeyup="filterUsersTable()">
+      <a href="/" class="btn-primary" style="width: auto; padding: 0.75rem 1.4rem; font-size: 0.9rem;"
+        id="btn-add-athlete">
+        <span>➕</span> Generate New Routine
+      </a>
+    </div>
+
+    <!-- Users & Plans Table -->
+    <section class="glass-card" style="padding: 1.5rem;">
+      <div class="table-wrapper">
+        <table class="admin-table" id="athletes-table">
+          <thead>
+            <tr>
+              <th>Athlete</th>
+              <th>User ID</th>
+              <th>Metrics</th>
+              <th>Fitness Goal</th>
+              <th>Intensity</th>
+              <th>Original Plan</th>
+              <th>Feedback &amp; Updated</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% if users %}
+            {% for user in users %}
+            {% set plan = plans_by_user.get(user.user_id) %}
+            <tr class="athlete-row">
+              <!-- Name -->
+              <td>
+                <strong style="color: #ffffff; font-size: 0.95rem;">{{ user.username }}</strong>
+                <div style="font-size: 0.75rem; color: var(--text-dim);">
+                  {{ user.created_at.strftime('%b %d, %Y') if user.created_at else 'Recent' }}
+                </div>
+              </td>
+
+              <!-- ID -->
+              <td>
+                <span
+                  style="font-family: monospace; color: var(--accent-cyan); background: rgba(0, 229, 255, 0.08); padding: 2px 6px; border-radius: 4px;">
+                  {{ user.user_id }}
+                </span>
+              </td>
+
+              <!-- Metrics -->
+              <td>
+                <div>{{ user.age }} yrs</div>
+                <div style="color: var(--text-muted); font-size: 0.8rem;">{{ user.weight }} kg</div>
+              </td>
+
+              <!-- Goal -->
+              <td>
+                <span style="font-weight: 500;">{{ user.goal }}</span>
+              </td>
+
+              <!-- Intensity -->
+              <td>
+                {% if user.intensity|lower == 'high' %}
+                <span class="badge-intensity badge-high">HIGH</span>
+                {% elif user.intensity|lower == 'medium' %}
+                <span class="badge-intensity badge-medium">MED</span>
+                {% else %}
+                <span class="badge-intensity badge-low">LOW</span>
+                {% endif %}
+              </td>
+
+              <!-- Original Plan -->
+              <td>
+                {% if plan and plan.original_plan %}
+                <button class="plan-btn" type="button"
+                  data-title="Original Plan: {{ user.username }} ({{ user.user_id }})"
+                  data-target="original-plan-{{ user.user_id }}" onclick="showPlanModal(this)">
+                  <span>📜 View</span>
+                </button>
+                <template id="original-plan-{{ user.user_id }}">{{ plan.original_plan }}</template>
+                {% else %}
+                <span style="color: var(--text-dim); font-size: 0.8rem;">None</span>
+                {% endif %}
+              </td>
+
+              <!-- Updated Plan -->
+              <td>
+                {% if plan and plan.updated_plan %}
+                <button class="plan-btn" type="button"
+                  style="border-color: var(--accent-lime); color: var(--accent-lime); background: rgba(0, 230, 118, 0.1);"
+                  data-title="Updated Plan: {{ user.username }} (Feedback: {{ plan.feedback or 'None' }})"
+                  data-target="updated-plan-{{ user.user_id }}" onclick="showPlanModal(this)">
+                  <span>⚡ Updated</span>
+                </button>
+                <template id="updated-plan-{{ user.user_id }}">{{ plan.updated_plan }}</template>
+                {% else %}
+                <span style="color: var(--text-dim); font-size: 0.8rem;">Original only</span>
+                {% endif %}
+              </td>
+
+              <!-- Actions -->
+              <td>
+                <form action="/delete-user/{{ user.user_id }}" method="POST"
+                  onsubmit="return confirm('Are you sure you want to delete {{ user.username }} ({{ user.user_id }})?');"
+                  style="display:inline;">
+                  <button type="submit" class="btn-danger" title="Delete Athlete">
+                    <span>🗑️ Delete</span>
+                  </button>
+                </form>
+              </td>
+            </tr>
+            {% endfor %}
+            {% else %}
+            <tr>
+              <td colspan="8" style="text-align: center; padding: 3rem; color: var(--text-muted);">
+                <div style="font-size: 2rem; margin-bottom: 0.5rem;">🏋️‍♂️</div>
+                <p>No athletes registered yet.</p>
+                <a href="/" class="btn-primary" style="display: inline-flex; width: auto; margin-top: 1rem;">
+                  Create the First Workout Plan &rarr;
+                </a>
+              </td>
+            </tr>
+            {% endif %}
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Plan Viewer Modal -->
+  <div class="modal-overlay" id="plan-modal" onclick="closePlanModal(event)">
+    <div class="modal-content" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <h3 class="modal-title" id="modal-title">Routine Details</h3>
+        <button class="modal-close" onclick="closePlanModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <pre class="workout-plan-box" id="modal-plan-content" style="max-height: 60vh;"></pre>
+      </div>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <p>FitBuddy &copy; 2026 – AI Fitness Plan Generator. Built with FastAPI, SQLite &amp; Google Gemini AI Models.</p>
+  </footer>
+
+  <script>
+    function openPlanModal(title, content) {
+      document.getElementById('modal-title').textContent = title;
+      document.getElementById('modal-plan-content').textContent = content;
+      document.getElementById('plan-modal').style.display = 'flex';
+    }
+
+    function closePlanModal(event) {
+      document.getElementById('plan-modal').style.display = 'none';
+    }
+
+    function showPlanModal(btn) {
+      const title = btn.getAttribute('data-title') || 'Routine Details';
+      const targetId = btn.getAttribute('data-target');
+      const templateEl = document.getElementById(targetId);
+      const content = templateEl ? (templateEl.content ? templateEl.content.textContent : templateEl.textContent) : '';
+      openPlanModal(title, content.trim());
+    }
+
+    // Filter table by search query
+    function filterUsersTable() {
+      const input = document.getElementById('user-search-input');
+      const filter = input.value.toLowerCase();
+      const rows = document.querySelectorAll('.athlete-row');
+
+      rows.forEach(row => {
+        const text = row.innerText.toLowerCase();
+        if (text.includes(filter)) {
+          row.style.display = '';
+        } else {
+          row.style.display = 'none';
+        }
+      });
+    }
+
+    // Close modal on Escape key
+    document.addEventListener('keydown', function (event) {
+      if (event.key === 'Escape') {
+        closePlanModal();
+      }
+    });
+  </script>
+</body>
+
+</html>

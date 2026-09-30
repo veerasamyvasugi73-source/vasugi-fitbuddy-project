@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Your Personalized Routine – FitBuddy AI</title>
+  <meta name="description" content="AI-generated 7-day personalized workout plan and nutrition strategy.">
+  <link rel="stylesheet" href="/static/css/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚡</text></svg>">
+</head>
+<body>
+  <div class="bg-hero-overlay"></div>
+
+  <!-- Navigation Bar -->
+  <header class="navbar">
+    <a href="/" class="nav-brand" id="brand-logo">
+      <div class="brand-icon">⚡</div>
+      <div class="brand-text">FitBuddy</div>
+      <span class="brand-badge">Gemini AI</span>
+    </a>
+    <nav class="nav-links">
+      <a href="/" class="nav-link" id="nav-home">
+        <span>🏠</span> Create Plan
+      </a>
+      <a href="/view-all-users" class="nav-link" id="nav-admin">
+        <span>👥</span> Coach Dashboard
+      </a>
+      <a href="/docs" target="_blank" class="nav-btn">
+        API Docs &rarr;
+      </a>
+    </nav>
+  </header>
+
+  <!-- Main Container -->
+  <main class="container">
+    
+    {% if error_message %}
+    <div class="alert-error" id="error-banner">
+      <strong>⚠️ Error:</strong> {{ error_message }}
+      <p style="margin-top: 0.5rem;"><a href="/" class="btn-secondary" style="display:inline-block;">&larr; Back to Intake Form</a></p>
+    </div>
+    {% endif %}
+
+    {% if is_updated and success_message %}
+    <div class="alert-success" id="success-banner">
+      <span>✅</span>
+      <div>
+        <strong>Plan Successfully Updated!</strong>
+        <p style="font-size: 0.9rem; margin-top: 2px;">Your routine has been regenerated with your feedback: <em>"{{ feedback }}"</em></p>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Athlete Information Banner -->
+    <section class="profile-banner" id="athlete-profile-card">
+      <div class="athlete-meta">
+        <div class="athlete-avatar">🏋️</div>
+        <div>
+          <h2 class="athlete-name" id="display-username">{{ username or 'Athlete' }}</h2>
+          <span class="athlete-id-badge" id="display-user-id">ID: {{ user_id }}</span>
+        </div>
+      </div>
+
+      <div class="metrics-pills">
+        <div class="pill">
+          <span class="pill-label">Age:</span>
+          <span class="pill-val" id="display-age">{{ age }} yrs</span>
+        </div>
+        <div class="pill">
+          <span class="pill-label">Weight:</span>
+          <span class="pill-val" id="display-weight">{{ weight }} kg</span>
+        </div>
+        <div class="pill">
+          <span class="pill-label">Goal:</span>
+          <span class="pill-val" id="display-goal">{{ goal }}</span>
+        </div>
+        <div class="pill">
+          <span class="pill-label">Intensity:</span>
+          {% if intensity|lower == 'high' %}
+          <span class="badge-intensity badge-high" id="display-intensity">HIGH</span>
+          {% elif intensity|lower == 'medium' %}
+          <span class="badge-intensity badge-medium" id="display-intensity">MEDIUM</span>
+          {% else %}
+          <span class="badge-intensity badge-low" id="display-intensity">LOW</span>
+          {% endif %}
+        </div>
+      </div>
+    </section>
+
+    <!-- Nutrition & Recovery Tip Section (Gemini Flash) -->
+    <section class="nutrition-card" id="nutrition-tip-card">
+      <div class="nutrition-header">
+        <span>🥗</span> Tailored Nutrition &amp; Recovery Strategy
+      </div>
+      <div class="nutrition-body" id="nutrition-tip-text">
+        {{ nutrition_tip }}
+      </div>
+    </section>
+
+    <!-- Workout Plan Display Section -->
+    <section class="glass-card" id="workout-plan-section">
+      
+      {% if is_updated and updated_plan %}
+      <!-- If updated, show the Updated Plan as Primary -->
+      <div class="plan-container">
+        <div class="plan-header">
+          <h3 class="plan-title">
+            <span style="color: var(--accent-lime);">⚡</span>
+            <span>Updated 7-Day Workout Routine (Revised via Gemini 1.5 Pro)</span>
+          </h3>
+          <div class="plan-actions">
+            <button class="plan-btn" onclick="copyPlanToClipboard('updated-plan-text')" id="btn-copy-plan">
+              <span>📋</span> Copy Plan
+            </button>
+            <button class="plan-btn" onclick="window.print()" id="btn-print-plan">
+              <span>🖨️</span> Print Routine
+            </button>
+          </div>
+        </div>
+        <pre class="workout-plan-box" id="updated-plan-text">{{ updated_plan }}</pre>
+      </div>
+
+      <!-- Collapsible Original Plan for Comparison -->
+      <details class="collapsible-plan" id="original-plan-accordion">
+        <summary>
+          <span>📜 View Original Plan for Comparison (Prior to Feedback)</span>
+          <span style="font-size: 0.8rem; text-decoration: underline;">Expand / Collapse</span>
+        </summary>
+        <pre class="workout-plan-box" id="original-plan-text" style="max-height: 400px; margin-top: 0.75rem;">{{ workout_plan }}</pre>
+      </details>
+
+      {% else %}
+      <!-- Standard Original Plan Display -->
+      <div class="plan-container">
+        <div class="plan-header">
+          <h3 class="plan-title">
+            <span style="color: var(--accent-lime);">🏋️</span>
+            <span>Personalized 7-Day Workout Schedule (Generated via Gemini 1.5 Pro)</span>
+          </h3>
+          <div class="plan-actions">
+            <button class="plan-btn" onclick="copyPlanToClipboard('workout-plan-text')" id="btn-copy-plan">
+              <span>📋</span> Copy Plan
+            </button>
+            <button class="plan-btn" onclick="window.print()" id="btn-print-plan">
+              <span>🖨️</span> Print Routine
+            </button>
+          </div>
+        </div>
+        <pre class="workout-plan-box" id="workout-plan-text">{{ workout_plan }}</pre>
+      </div>
+      {% endif %}
+
+      <!-- Feedback / Plan Refinement Section (Scenario 2) -->
+      <section class="feedback-card" id="feedback-section">
+        <h4 class="feedback-title">
+          <span>🔄</span> Refine Your Workout Plan with AI
+        </h4>
+        <p class="feedback-desc">
+          Need adjustments? Request changes like <em>"Add 15 min cardio"</em>, <em>"Include yoga on rest days"</em>, <em>"Focus more on core"</em>, or <em>"Lower impact due to knee soreness"</em>.
+        </p>
+
+        <form action="/submit-feedback" method="POST" id="feedback-form">
+          <input type="hidden" name="user_id" value="{{ user_id }}">
+          
+          <div class="form-group" style="margin-bottom: 1rem;">
+            <textarea 
+              name="feedback" 
+              id="feedback-input" 
+              class="form-textarea" 
+              rows="3" 
+              placeholder="e.g. Please add 15 minutes of cardio after upper body days, and replace barbell back squats with dumbbell goblet squats..."
+              required
+            ></textarea>
+          </div>
+
+          <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+            <button type="submit" class="btn-primary" style="flex: 1;" id="btn-submit-feedback">
+              <span>🚀 Regenerate Plan with Feedback</span>
+            </button>
+            <a href="/" class="btn-secondary" style="flex: 0 0 auto;">
+              <span>➕ New Athlete</span>
+            </a>
+          </div>
+        </form>
+      </section>
+
+    </section>
+
+  </main>
+
+  <footer class="footer">
+    <p>FitBuddy &copy; 2026 – AI Fitness Plan Generator. Built with FastAPI, SQLite &amp; Google Gemini AI Models.</p>
+  </footer>
+
+  <script>
+    function copyPlanToClipboard(elementId) {
+      const text = document.getElementById(elementId).innerText;
+      navigator.clipboard.writeText(text).then(() => {
+        const btn = document.getElementById('btn-copy-plan');
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<span>✅</span> Copied!';
+        setTimeout(() => {
+          btn.innerHTML = originalText;
+        }, 2000);
+      }).catch(err => {
+        alert('Could not copy plan to clipboard: ' + err);
+      });
+    }
+  </script>
+</body>
+</html>

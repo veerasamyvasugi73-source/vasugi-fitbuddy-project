@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FitBuddy – AI Fitness Plan Generator using Gemini Models</title>
+  <meta name="description"
+    content="Personalized 7-day workout generator and nutrition tips powered by Google Gemini 1.5 Pro and Gemini Flash.">
+  <link rel="stylesheet" href="/static/css/style.css">
+  <link rel="icon"
+    href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚡</text></svg>">
+</head>
+
+<body>
+  <!-- Background Image with Overlay -->
+  <div class="bg-hero-overlay"></div>
+
+  <!-- Navigation Bar -->
+  <header class="navbar">
+    <a href="/" class="nav-brand" id="brand-logo">
+      <div class="brand-icon">⚡</div>
+      <div class="brand-text">FitBuddy</div>
+      <span class="brand-badge">Gemini AI</span>
+    </a>
+    <nav class="nav-links">
+      <a href="/" class="nav-link active" id="nav-home">
+        <span>🏠</span> Home
+      </a>
+      <a href="/view-all-users" class="nav-link" id="nav-admin">
+        <span>👥</span> Coach Dashboard
+      </a>
+      <a href="/docs" target="_blank" class="nav-btn" id="nav-api-docs">
+        API Docs &rarr;
+      </a>
+    </nav>
+  </header>
+
+  <!-- Main Content Container -->
+  <main class="container">
+    <div class="hero-header">
+      <div class="hero-subtitle-badge">
+        <span>✨</span> Powered by Gemini 1.5 Pro &amp; Flash
+      </div>
+      <h1 class="hero-title">Forge Your Ultimate Routine</h1>
+      <p class="hero-desc">
+        FitBuddy harnesses advanced generative AI to craft a bespoke 7-day workout schedule and tailored nutrition
+        guidance engineered for your specific body, goals, and lifestyle.
+      </p>
+    </div>
+
+    <!-- Intake Form Card -->
+    <section class="glass-card" id="intake-form-section">
+      <form action="/generate-workout" method="POST" id="fitness-form">
+        <div class="form-grid">
+
+          <!-- Athlete Name -->
+          <div class="form-group">
+            <label for="username" class="form-label">
+              <span>Full Name or Nickname</span>
+            </label>
+            <input type="text" id="username" name="username" class="form-input" placeholder="e.g. Alex Hunter" required
+              autocomplete="name">
+          </div>
+
+          <!-- User ID -->
+          <div class="form-group">
+            <label for="user_id" class="form-label">
+              <span>User ID / Member ID</span>
+              <span class="helper" onclick="generateRandomUserId()" id="btn-gen-id">Generate ID</span>
+            </label>
+            <input type="text" id="user_id" name="user_id" class="form-input" placeholder="e.g. FB-8842" required>
+          </div>
+
+          <!-- Age -->
+          <div class="form-group">
+            <label for="age" class="form-label">
+              <span>Age (Years)</span>
+            </label>
+            <input type="number" id="age" name="age" class="form-input" placeholder="e.g. 26" min="12" max="110"
+              required>
+          </div>
+
+          <!-- Weight -->
+          <div class="form-group">
+            <label for="weight" class="form-label">
+              <span>Weight (kg)</span>
+            </label>
+            <input type="number" step="0.1" id="weight" name="weight" class="form-input" placeholder="e.g. 74.5"
+              min="25" max="350" required>
+          </div>
+
+          <!-- Fitness Goal -->
+          <div class="form-group full-width">
+            <label for="goal" class="form-label">
+              <span>Primary Fitness Objective</span>
+            </label>
+            <select id="goal" name="goal" class="form-select" required>
+              <option value="" disabled selected>Select your primary goal...</option>
+              <option value="Weight Loss &amp; Fat Reduction">Weight Loss &amp; Fat Reduction</option>
+              <option value="Muscle Gain &amp; Hypertrophy">Muscle Gain &amp; Hypertrophy</option>
+              <option value="Strength &amp; Conditioning">Strength &amp; Conditioning</option>
+              <option value="Cardiovascular Endurance &amp; Stamina">Cardiovascular Endurance &amp; Stamina</option>
+              <option value="Flexibility, Mobility &amp; Posture">Flexibility, Mobility &amp; Posture</option>
+              <option value="General Wellness &amp; Longevity">General Wellness &amp; Longevity</option>
+            </select>
+          </div>
+
+          <!-- Preferred Intensity -->
+          <div class="form-group full-width">
+            <label class="form-label">
+              <span>Preferred Workout Intensity</span>
+            </label>
+            <div class="intensity-selector">
+              <!-- Low -->
+              <label class="intensity-card" id="intensity-low-label">
+                <input type="radio" name="intensity" value="Low" id="intensity-low">
+                <div class="intensity-box">
+                  <span class="intensity-title" style="color: var(--accent-cyan);">Low Intensity</span>
+                  <span class="intensity-desc">Gentle pacing, low impact, mobility &amp; light cardio.</span>
+                </div>
+              </label>
+
+              <!-- Medium -->
+              <label class="intensity-card" id="intensity-med-label">
+                <input type="radio" name="intensity" value="Medium" id="intensity-medium" checked>
+                <div class="intensity-box">
+                  <span class="intensity-title" style="color: var(--accent-lime);">Medium Intensity</span>
+                  <span class="intensity-desc">Balanced progression, moderate weights &amp; steady cardio.</span>
+                </div>
+              </label>
+
+              <!-- High -->
+              <label class="intensity-card" id="intensity-high-label">
+                <input type="radio" name="intensity" value="High" id="intensity-high">
+                <div class="intensity-box">
+                  <span class="intensity-title" style="color: var(--accent-coral);">High Intensity</span>
+                  <span class="intensity-desc">Challenging overload, intense circuits &amp; max effort.</span>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <!-- Submit Button -->
+          <div class="form-group full-width" style="margin-top: 1rem;">
+            <button type="submit" class="btn-primary" id="btn-submit-workout">
+              <span>⚡ Generate 7-Day Plan with Gemini AI</span>
+            </button>
+          </div>
+
+        </div>
+      </form>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <p>FitBuddy &copy; 2026 – AI Fitness Plan Generator. Built with FastAPI, SQLite &amp; Google Gemini AI Models.</p>
+  </footer>
+
+  <script>
+    function generateRandomUserId() {
+      const randomNum = Math.floor(1000 + Math.random() * 9000);
+      document.getElementById('user_id').value = 'FB-' + randomNum;
+    }
+    // Auto populate random ID if empty
+    window.addEventListener('DOMContentLoaded', () => {
+      const idInput = document.getElementById('user_id');
+      if (!idInput.value) {
+        generateRandomUserId();
+      }
+    });
+  </script>
+</body>
+
+</html>
